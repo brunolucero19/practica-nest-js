@@ -15,11 +15,17 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     const status = exception.getStatus();
     const exceptionResponse = exception.getResponse();
+
+    console.log(exceptionResponse);
+    
     
     const message =
       typeof exceptionResponse === 'string'
         ? exceptionResponse
-        : (exceptionResponse as any).error;
+        : (exceptionResponse as any).error ? (exceptionResponse as any).error : (exceptionResponse as any).message ;
+
+    console.log(message);
+    
 
     response.status(status).json({
       statusCode: status,
