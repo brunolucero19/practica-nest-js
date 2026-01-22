@@ -1,5 +1,6 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -8,6 +9,16 @@ export class UsersService {
     id: 1,
     name: 'Bruno',
     email: 'bruno@example.com'
+  }, 
+  {
+    id: 2,
+    name: 'Sofía',
+    email: 'sofia@example.com'
+  },
+  {
+    id: 3,
+    name: 'Lionel',
+    email: 'lionel@example.com'
   }]
 
   findAll() {
@@ -29,5 +40,27 @@ export class UsersService {
     }
     this.users.push(newUser);
     return newUser;
+  }
+
+  partialUpdate(id: number, updateUserDTO: UpdateUserDto){
+    const userIndex = this.users.findIndex(user => user.id === id);
+    if (userIndex === -1) {
+      throw new NotFoundException(`User with id ${id} not found`);
+    }
+    const updatedUser = {
+      ...this.users[userIndex],
+      ...updateUserDTO
+    }
+    this.users[userIndex] = updatedUser;
+    return updatedUser;
+  }
+
+  remove(id: number) {
+    const userIndex = this.users.findIndex(user => user.id === id);
+    if (userIndex === -1) {
+      throw new NotFoundException(`User with id ${id} not found`);
+    }
+    const removedUser = this.users.splice(userIndex, 1);
+    return removedUser[0];
   }
 }
