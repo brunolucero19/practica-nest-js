@@ -1,4 +1,4 @@
-import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, HttpException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './models/user.model';
@@ -13,45 +13,38 @@ export class UsersService {
   ) {}
 
 
-  // findAll() {
-  //   return this.users;
-  // }
+  findAll() {
+    return this.userModel.findAll();
+  }
 
-  // findOne(id: number) {
-  //   const user = this.users.find(user => user.id === id);
-  //   if (!user) {
-  //     throw new HttpException('User not found', 404);
-  //   }
-  //   return user;
-  // }
+  findOne(id: number) {
+    return this.userModel.findByPk(id);
+  }
 
    findByEmail(email: string) {
     return this.userModel.findOne({ where: { email } });
   }
 
-  create(data: CreateUserDto) {
+  async create(data: CreateUserDto) {
+    // Verificar si el email ya existe
+    const existingUser = await this.userModel.findOne({ where: { email: data.email } });
+    if (existingUser) {
+      throw new ConflictException('Email already in use');
+    }
     return this.userModel.create(data);
   }
 
-  // partialUpdate(id: number, updateUserDTO: UpdateUserDto){
-  //   const userIndex = this.users.findIndex(user => user.id === id);
-  //   if (userIndex === -1) {
-  //     throw new NotFoundException(`User with id ${id} not found`);
-  //   }
-  //   const updatedUser = {
-  //     ...this.users[userIndex],
-  //     ...updateUserDTO
-  //   }
-  //   this.users[userIndex] = updatedUser;
-  //   return updatedUser;
-  // }
+  partialUpdate(id: number, data: UpdateUserDto) {
+    // Buscar usuario
+    const user = this.userModel.findByPk(id);
+    if (!user) {
+      throw new NotFoundException(`User with id ${id} not found`);
+    }
+    // Actualizar usuario
+    return this.userModel.update(data, { where: { id }, returning: true });
+  }
 
-  // remove(id: number) {
-  //   const userIndex = this.users.findIndex(user => user.id === id);
-  //   if (userIndex === -1) {
-  //     throw new NotFoundException(`User with id ${id} not found`);
-  //   }
-  //   const removedUser = this.users.splice(userIndex, 1);
-  //   return removedUser[0];
-  // }
+  remove(id: number) {
+    return this.userModel.destroy({ where: { id } });
+  }
 }
